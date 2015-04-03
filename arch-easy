@@ -1,0 +1,109 @@
+#!/bin/sh
+# Notes for installing on Samsung Series 9
+# UEFI boot: LVM on LUKS
+#
+# See the full blog post:
+# http://jasonwryan.com/blog/2013/01/25/uefi/
+
+# check you are booted in uefi
+modprobe efivars
+ls /sys/firmware/efi/vars
+
+# zero the drive
+dd if=/dev/urandom of=/dev/sda
+
+# Create partition table: GPT
+install gptfdisk
+
+sgdisk -Z /dev/sda
+sgdisk -a 2048 -o /dev/sda
+
+sgdisk -n 1:0:+200M /dev/sda
+sgdisk -n 2:0:0 /dev/sda
+
+sgdisk -t 1:ef00 /dev/sda
+sgdisk -t 2:8300 /dev/sda
+
+sgdisk -c 1:bootefi /dev/sda
+sgdisk -c 2:root /dev/sda
+
+# encrypt sda2
+modprobe dm-crypt
+cryptsetup --cipher aes-xts-plain64 --key-size 512 --hash sha512\
+--iter-time 5000 --use-random --verify-passphrase luksFormat /dev/sda2
+
+cryptsetup luksOpen /dev/sda2 cryptdisk
+
+# setup logical volumes
+pvcreate /dev/mapper/cryptdisk
+pvdisplay
+
+vgcreate vgroup /dev/mapper/cryptdisk
+vgdisplay
+
+lvcreate --size 30G --name lvroot vgroup
+lvcreate --extents +100%FREE --name lvhome vgroup
+lvdisplay
+
+# create filesystem
+mkfs.vfat -F32 /dev/sda1
+mkfs.ext4 /dev/mapper/vgroup-lvroot
+mkfs.ext4 /dev/mapper/vgroup-lvhome
+
+# Mount the partitions
+mnt /dev/mapper/vgroup-lvroot /mnt
+mkdir -p /mnt/boot/efi
+mount -t vfat /dev/sda1 /mnt/boot/efi
+mkdir /mnt/home
+mount /dev/mapper/vgroup-lvhome /mnt/home
+
+### install base system ###
+select a mirror
+pacstrap -i /mnt base base-devel
+
+genfstab -U -p /mnt >> /mnt/etc/fstab
+vi /mnt/etc/fstab
+
+# chroot timeâ€¦
+arch-chroot /mnt
+
+# other modifications
+# vi /etc/mkinitcpio.conf
+# hooks
+â€¦encrypt lvm2 filesystemsâ€¦ shutdownâ€¦
+# modules
+vfat ext4 dm_mod dm_crypt aes_x86_64 i915
+
+# add options to /etc/lvm/lvm.conf
+issue_discards 1
+
+# blacklist samsung module to prevent kernel panics
+# bug: https://bugzilla.kernel.org/show_bug.cgi?id=47121
+# /etc/modprobe.d/samsung_module.conf
+blacklist samsung_laptop
+
+### bootloader ###
+pacman -S gummiboot-efi
+
+mkdir -p /boot/efi/EFI/gummiboot
+cp /usr/lib/gummiboot/gummibootx64.efi /boot/efi/EFI/gummiboot/gummiboot.efi
+efibootmgr -c -d /dev/sda -p 1 -w -L "Gummiboot" -l '\EFI\gummiboot\gummiboot.efi'
+
+# copy files across
+mkdir /boot/efi/arch
+cp /boot/vmlinuz-linux /boot/efi/EFI/arch/vmlinuz-linux.efi
+cp /boot/initramfs-linux.img /boot/efi/EFI/arch/initramfs-linux.img
+cp /boot/initramfs-linux-fallback.img /boot/efi/EFI/arch/initramfs-linux-fallback.img
+
+# create conf
+# /boot/efi/loader/loader.conf
+default arch
+timeout 5
+
+# create /boot/efi/loader/entries/arch.conf
+title Arch Linux
+efi \EFI\arch\vmlinuz-linux.efi
+options initrd=\EFI\arch\initramfs-linux.img cryptdevice=/dev/sda2:vgroup root=/dev/mapper/vgroup-lvroot ro 
+
+# after successfully rebooting, create service files to update gummiboot path
+# https://wiki.archlinux.org/index.php/Gummiboot#Automatic_copy_on_update

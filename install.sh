@@ -29,9 +29,7 @@ sgdisk -c 2:root /dev/sda
 
 # encrypt sda2
 modprobe dm-crypt
-cryptsetup --cipher aes-xts-plain64 --key-size 512 --hash sha512\
---iter-time 5000 --use-random --verify-passphrase luksFormat /dev/sda2
-
+cryptsetup --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 5000 --use-random --verify-passphrase luksFormat /dev/sda2
 cryptsetup luksOpen /dev/sda2 cryptdisk
 
 # setup logical volumes

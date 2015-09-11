@@ -17,7 +17,7 @@ set -o nounset
 # this whole script needs to be customized, particularly disk partitions
 # and configuration, but this section contains global variables that
 # are used during the system configuration phase for convenience
-HOSTNAME=archie
+HOST=archie
 USERNAME=nop
 
 # ------------------------------------------------------------------------
@@ -35,8 +35,8 @@ TARGET_PACMAN="pacman --noconfirm --config /tmp/pacman.conf -r ${INSTALL_TARGET}
 CHROOT_PACMAN="pacman --noconfirm --cachedir /var/cache/pacman/pkg --config /tmp/pacman.conf -r ${INSTALL_TARGET}"
 FILE_URL="file:///packages/core-$(uname -m)/pkg"
 MIRROR="mirror.yandex.ru"
-FTP_URL='ftp://$MIRROR/archlinux/$repo/os/$arch'
-HTTP_URL='http://$MIRROR/archlinux/$repo/os/$arch'
+FTP_URL='ftp://${MIRROR}/archlinux/$repo/os/$arch'
+HTTP_URL='http://${MIRROR}/archlinux/$repo/os/$arch'
 
 # ------------------------------------------------------------------------
 # Functions
@@ -222,8 +222,8 @@ ${TARGET_PACMAN} -S grub2-efi-x86_64
 # ------------------------------------------------------------------------
 # Configure new system
 # ------------------------------------------------------------------------
-SetValue HOSTNAME ${HOSTNAME} ${INSTALL_TARGET}/etc/rc.conf
-sed -i "s/^\(127\.0\.0\.1.*\)$/\1 ${HOSTNAME}/" ${INSTALL_TARGET}/etc/hosts
+SetValue HOSTNAME ${HOST} ${INSTALL_TARGET}/etc/rc.conf
+sed -i "s/^\(127\.0\.0\.1.*\)$/\1 ${HOST}/" ${INSTALL_TARGET}/etc/hosts
 SetValue CONSOLEFONT Lat2-Terminus16 ${INSTALL_TARGET}/etc/rc.conf
 #following replaced due to netcfg
 #SetValue interface eth0 ${INSTALL_TARGET}/etc/rc.conf

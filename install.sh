@@ -66,19 +66,20 @@ vi /mnt/etc/fstab
 arch-chroot /mnt
 
 # other modifications
-# vi /etc/mkinitcpio.conf
 # hooks
 #…encrypt lvm2 filesystems… shutdown…
 # modules
-vfat ext4 dm_mod dm_crypt aes_x86_64 i915
+# vfat ext4 dm_mod dm_crypt aes_x86_64 i915
+nano /etc/mkinitcpio.conf
 
-# add options to /etc/lvm/lvm.conf
-issue_discards 1
+# add options to
+nano /etc/lvm/lvm.conf
+#issue_discards 1
 
 # blacklist samsung module to prevent kernel panics
 # bug: https://bugzilla.kernel.org/show_bug.cgi?id=47121
 # /etc/modprobe.d/samsung_module.conf
-blacklist samsung_laptop
+#blacklist samsung_laptop
 
 ### bootloader ###
 pacman -S gummiboot-efi
@@ -94,14 +95,14 @@ cp /boot/initramfs-linux.img /boot/efi/EFI/arch/initramfs-linux.img
 cp /boot/initramfs-linux-fallback.img /boot/efi/EFI/arch/initramfs-linux-fallback.img
 
 # create conf
-# /boot/efi/loader/loader.conf
-default arch
-timeout 5
+nano /boot/efi/loader/loader.conf
+#default arch
+#timeout 5
 
-# create /boot/efi/loader/entries/arch.conf
-title Arch Linux
-efi \EFI\arch\vmlinuz-linux.efi
-options initrd=\EFI\arch\initramfs-linux.img cryptdevice=/dev/sda2:vgroup root=/dev/mapper/vgroup-lvroot ro 
+nano /boot/efi/loader/entries/arch.conf
+#title Arch Linux
+#efi \EFI\arch\vmlinuz-linux.efi
+#options initrd=\EFI\arch\initramfs-linux.img cryptdevice=/dev/sda2:vgroup root=/dev/mapper/vgroup-lvroot ro
 
 # after successfully rebooting, create service files to update gummiboot path
-https://wiki.archlinux.org/index.php/Gummiboot#Automatic_copy_on_update
+#https://wiki.archlinux.org/index.php/Gummiboot#Automatic_copy_on_update

@@ -4,28 +4,28 @@
 
 # Download the archiso image from https://www.archlinux.org/
 # Copy to a usb-drive
-dd if=archlinux.img of=/dev/sdX bs=16M && sync # on linux
+#dd if=archlinux.img of=/dev/sda bs=16M && sync # on linux
 
 # Boot from the usb. If the usb fails to boot, make sure that secure boot is disabled in the BIOS configuration.
 
 # Set swedish keymap
-loadkeys sv-latin1
+#loadkeys sv-latin1
 
 # This assumes a wifi only system...
 wifi-menu
 
 # Create partitions
-cgdisk /dev/sdX
+cgdisk /dev/sda
 1 100MB EFI partition # Hex code ef00
 2 250MB Boot partition # Hex code 8300
 3 100% size partiton # (to be encrypted) Hex code 8300
 
-mkfs.vfat -F32 /dev/sdX1
-mkfs.ext2 /dev/sdX2
+mkfs.vfat -F32 /dev/sda1
+mkfs.ext2 /dev/sda2
 
 # Setup the encryption of the system
-cryptsetup -c aes-xts-plain64 -y --use-random luksFormat /dev/sdX3
-cryptsetup luksOpen /dev/sdX3 luks
+cryptsetup -c aes-xts-plain64 -y --use-random luksFormat /dev/sda3
+cryptsetup luksOpen /dev/sda3 luks
 
 # Create encrypted partitions
 # This creates one partions for root, modify if /home or other partitions should be on separate partitions
@@ -42,9 +42,9 @@ mkswap /dev/mapper/vg0-swap
 mount /dev/mapper/vg0-root /mnt # /mnt is the installed system
 swapon /dev/mapper/vg0-swap # Not needed but a good thing to test
 mkdir /mnt/boot
-mount /dev/sdX2 /mnt/boot
+mount /dev/sda2 /mnt/boot
 mkdir /mnt/boot/efi
-mount /dev/sdX1 /mnt/boot/efi
+mount /dev/sda1 /mnt/boot/efi
 
 # Install the system also includes stuff needed for starting wifi when first booting into the newly installed system
 # Unless vim and zsh are desired these can be removed from the command
@@ -88,7 +88,7 @@ mkinitcpio -p linux
 
 # Setup grub
 grub-install
-In /etc/default/grub edit the line GRUB_CMDLINE_LINUX to GRUB_CMDLINE_LINUX="cryptdevice=/dev/sdX3:luks:allow-discards" then run:
+In /etc/default/grub edit the line GRUB_CMDLINE_LINUX to GRUB_CMDLINE_LINUX="cryptdevice=/dev/sda3:luks:allow-discards" then run:
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Exit new system and go into the cd shell

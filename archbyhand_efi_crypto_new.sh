@@ -34,9 +34,8 @@ PACMAN="pacman --noconfirm --config /tmp/pacman.conf"
 TARGET_PACMAN="pacman --noconfirm --config /tmp/pacman.conf -r ${INSTALL_TARGET}"
 CHROOT_PACMAN="pacman --noconfirm --cachedir /var/cache/pacman/pkg --config /tmp/pacman.conf -r ${INSTALL_TARGET}"
 FILE_URL="file:///packages/core-$(uname -m)/pkg"
-MIRROR_URL="mirror.yandex.ru"
-FTP_URL='ftp://${MIRROR_URL}/archlinux/$repo/os/$arch'
-HTTP_URL='http://${MIRROR_URL}/archlinux/$repo/os/$arch'
+FTP_URL='ftp://mirror.yandex.ru/archlinux/$repo/os/$arch'
+HTTP_URL='http://mirror.yandex.ru/archlinux/$repo/os/$arch'
 
 # ------------------------------------------------------------------------
 # Functions

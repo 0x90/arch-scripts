@@ -8,8 +8,8 @@
 # successful EFI boot of Archboot USB
 # mount /dev/sdb1 /src
 
-set -o nounset
-#set -o errexit
+#set -o nounset
+set -o errexit
 
 # ------------------------------------------------------------------------
 # Host specific configuration
